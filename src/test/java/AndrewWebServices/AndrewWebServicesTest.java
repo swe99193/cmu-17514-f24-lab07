@@ -2,9 +2,15 @@ package AndrewWebServices;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class AndrewWebServicesTest {
     Database database;
@@ -15,9 +21,9 @@ public class AndrewWebServicesTest {
     @Before
     public void setUp() {
         // You need to use some mock objects here
-        database = new Database(); // We probably don't want to access our real database...
-        recommender = new RecSys();
-        promoService = new PromoService();
+        database = new InMemoryDatabase(); // We probably don't want to access our real database...
+        recommender = mock(RecSys.class);
+        promoService = mock(PromoService.class);
 
         andrewWebService = new AndrewWebServices(database, recommender, promoService);
     }
@@ -31,6 +37,8 @@ public class AndrewWebServicesTest {
     @Test
     public void testGetRecommendation() {
         // This is taking way too long to test
+        when(andrewWebService.recommender.getRecommendation(any())).thenReturn("Animal House");
+
         assertEquals("Animal House", andrewWebService.getRecommendation("Scotty"));
     }
 
@@ -38,11 +46,18 @@ public class AndrewWebServicesTest {
     public void testSendEmail() {
         // How should we test sendEmail() when it doesn't have a return value?
         // Hint: is there something from Mockito that seems useful here?
+        andrewWebService.sendPromoEmail("null");
+
+        verify(promoService, Mockito.times(1)).mailTo(anyString());
     }
 
     @Test
     public void testNoSendEmail() {
         // How should we test that no email has been sent in certain situations (like right after logging in)?
         // Hint: is there something from Mockito that seems useful here?
+        // andrewWebService.sendPromoEmail("null");
+        andrewWebService.getRecommendation("null");
+
+        verify(promoService, Mockito.times(0)).mailTo(anyString());
     }
 }
